@@ -3,16 +3,12 @@
 import { useEffect, useState } from "react";
 import VehicleTypeForm from "./components/VehicleTypeForm";
 import VehicleTypeTable from "./components/VehicleTypeTable";
-
-type VehicleType = {
-  id: string;
-  name: string;
-  firstHourRate: string;
-  additionalHourRate: string;
-};
+import { VehicleType } from "../types/vehicle-type";
 
 export default function VehicleTypesPage() {
   const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
+  const [editingVehicleType, setEditingVehicleType] =
+    useState<VehicleType | null>(null);
 
   useEffect(() => {
     fetchVehicleTypes();
@@ -29,8 +25,26 @@ export default function VehicleTypesPage() {
       const data = await response.json();
       setVehicleTypes(data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error fetching vehicle types:", error);
     }
+  }
+
+  function handleEdit(vehicleType: VehicleType) {
+    setEditingVehicleType(vehicleType);
+  }
+
+  function handleSuccess() {
+    fetchVehicleTypes();
+    setEditingVehicleType(null);
+  }
+
+  function handleCancelEdit() {
+    setEditingVehicleType(null);
+  }
+
+  function handleDelete() {
+    fetchVehicleTypes();
+    setEditingVehicleType(null);
   }
 
   return (
@@ -39,9 +53,17 @@ export default function VehicleTypesPage() {
         Vehicle Types
       </h1>
 
-      <VehicleTypeForm onSuccess={fetchVehicleTypes} />
+      <VehicleTypeForm
+        onSuccess={handleSuccess}
+        editingVehicleType={editingVehicleType}
+        onCancel={handleCancelEdit}
+      />
 
-      <VehicleTypeTable vehicleTypes={vehicleTypes} />
+      <VehicleTypeTable
+        vehicleTypes={vehicleTypes}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </main>
   );
 }
