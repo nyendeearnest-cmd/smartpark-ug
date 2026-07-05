@@ -87,8 +87,8 @@ model ParkingRecord {
   parkingSlotId    String
   parkingSlot      ParkingSlot    @relation(fields: [parkingSlotId], references: [id])
 
-  checkedInById    String
-  checkedInBy      User           @relation(fields: [checkedInById], references: [id])
+checkedInById    String?
+checkedInBy      User? @relation(fields: [checkedInById], references: [id])
 
   checkInTime      DateTime       @default(now())
   checkOutTime     DateTime?
