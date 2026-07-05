@@ -15,23 +15,32 @@ type Slot = {
   status: string;
 };
 
-type Record = {
+type ParkingRecord = {
   id: string;
-  vehicle: Vehicle;
-  parkingSlot: Slot;
   checkInTime: string;
+  checkOutTime: string | null;
+  durationMinutes: number | null;
+  amountCharged: number | null;
+  status: "ACTIVE" | "COMPLETED";
+
+  vehicle: Vehicle;
+
+  parkingSlot: {
+    id: string;
+    slotNumber: string;
+  };
 };
 
 export default function ParkingRecordsPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<ParkingRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-  vehicleId: "",
-  parkingSlotId: "",
-});
+    vehicleId: "",
+    parkingSlotId: "",
+  });
 
   useEffect(() => {
     fetchData();
@@ -47,26 +56,30 @@ export default function ParkingRecordsPage() {
         fetch("/api/parking-records"),
       ]);
 
-      setVehicles(await vRes.json());
+      const vehiclesData = await vRes.json();
+      const slotsData = await sRes.json();
+      const recordsData = await rRes.json();
 
-      const allSlots = await sRes.json();
-      setSlots(allSlots.filter((s: Slot) => s.status === "AVAILABLE"));
+      setVehicles(vehiclesData);
 
-      setRecords(await rRes.json());
+      setSlots(
+        slotsData.filter(
+          (slot: Slot) => slot.status === "AVAILABLE"
+        )
+      );
+
+      setRecords(recordsData);
     } catch {
-      toast.error("Failed to load data");
+      toast.error("Failed to load data.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleCheckIn(e: React.FormEvent) {
+  async function handleCheckIn(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
-
-    if (!form.vehicleId || !form.parkingSlotId) {
-      toast.error("Select vehicle and slot");
-      return;
-    }
 
     try {
       const res = await fetch("/api/parking-records", {
@@ -80,102 +93,192 @@ export default function ParkingRecordsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.message || "Check-in failed");
+        toast.error(data.message);
         return;
       }
 
-      toast.success("Vehicle checked in");
+      toast.success("Vehicle checked in.");
 
-     setForm({
-  vehicleId: "",
-  parkingSlotId: "",
-});
+      setForm({
+        vehicleId: "",
+        parkingSlotId: "",
+      });
+
       fetchData();
     } catch {
-      toast.error("Check-in failed");
+      toast.error("Check-in failed.");
+    }
+  }
+
+  async function handleCheckout(id: string) {
+    if (!confirm("Check out this vehicle?")) return;
+
+    try {
+      const res = await fetch(
+        `/api/parking-records/${id}/checkout`,
+        {
+          method: "PUT",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message);
+        return;
+      }
+
+      toast.success("Vehicle checked out.");
+
+      fetchData();
+    } catch {
+      toast.error("Checkout failed.");
     }
   }
 
   return (
     <DashboardLayout
-      title="Check-In"
-      description="Manage vehicle entry"
+      title="Parking Records"
+      description="Manage vehicle check-in and check-out"
     >
-      {/* FORM */}
       <form
         onSubmit={handleCheckIn}
-        className="bg-white border p-4 rounded-xl grid md:grid-cols-4 gap-3 mb-6"
+        className="bg-white border rounded-xl p-5 mb-6 grid md:grid-cols-3 gap-4"
       >
-        {/* VEHICLE */}
         <select
+          className="border rounded-lg p-3"
           value={form.vehicleId}
           onChange={(e) =>
-            setForm({ ...form, vehicleId: e.target.value })
+            setForm({
+              ...form,
+              vehicleId: e.target.value,
+            })
           }
-          className="border p-2 rounded"
         >
           <option value="">Select Vehicle</option>
-          {vehicles.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.numberPlate}
+
+          {vehicles.map((vehicle) => (
+            <option
+              key={vehicle.id}
+              value={vehicle.id}
+            >
+              {vehicle.numberPlate}
             </option>
           ))}
         </select>
 
-        {/* SLOT */}
         <select
+          className="border rounded-lg p-3"
           value={form.parkingSlotId}
           onChange={(e) =>
-            setForm({ ...form, parkingSlotId: e.target.value })
+            setForm({
+              ...form,
+              parkingSlotId: e.target.value,
+            })
           }
-          className="border p-2 rounded"
         >
           <option value="">Select Slot</option>
-          {slots.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.slotNumber}
+
+          {slots.map((slot) => (
+            <option
+              key={slot.id}
+              value={slot.id}
+            >
+              {slot.slotNumber}
             </option>
           ))}
         </select>
 
-        {/* BUTTON (IMPORTANT FIX) */}
         <button
           type="submit"
-          className="bg-green-600 text-white rounded px-4 py-2 md:col-span-2"
+          className="bg-blue-600 text-white rounded-lg"
         >
           Check In Vehicle
         </button>
       </form>
 
-      {/* LOADING */}
-      {loading && <p className="text-gray-500">Loading...</p>}
+      <div className="bg-white border rounded-xl overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-slate-100">
+            <tr>
+              <th className="text-left p-4">Vehicle</th>
+              <th className="text-left p-4">Slot</th>
+              <th className="text-left p-4">Check In</th>
+              <th className="text-left p-4">Status</th>
+              <th className="text-left p-4">Duration</th>
+              <th className="text-left p-4">Amount</th>
+              <th className="text-left p-4">Action</th>
+            </tr>
+          </thead>
 
-      {/* TABLE */}
-      {!loading && (
-        <div className="bg-white border rounded-xl overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-gray-100">
+          <tbody>
+            {loading ? (
               <tr>
-                <th className="p-3">Vehicle</th>
-                <th className="p-3">Slot</th>
-                <th className="p-3">Time</th>
+                <td
+                  colSpan={7}
+                  className="p-6 text-center"
+                >
+                  Loading...
+                </td>
               </tr>
-            </thead>
+            ) : (
+              records.map((record) => (
+                <tr
+                  key={record.id}
+                  className="border-t"
+                >
+                  <td className="p-4">
+                    {record.vehicle.numberPlate}
+                  </td>
 
-            <tbody>
-              {records.map((r) => (
-                <tr key={r.id} className="border-t">
-                  <td className="p-3">{r.vehicle.numberPlate}</td>
-                  <td className="p-3">{r.parkingSlot.slotNumber}</td>
-                  <td className="p-3">
-                    {new Date(r.checkInTime).toLocaleString()}
+                  <td className="p-4">
+                    {record.parkingSlot.slotNumber}
+                  </td>
+
+                  <td className="p-4">
+                    {new Date(
+                      record.checkInTime
+                    ).toLocaleString()}
+                  </td>
+
+                  <td className="p-4">
+                    {record.status}
+                  </td>
+
+                  <td className="p-4">
+                    {record.durationMinutes
+                      ? `${record.durationMinutes} min`
+                      : "-"}
+                  </td>
+
+                  <td className="p-4">
+                    {record.amountCharged
+                      ? `UGX ${record.amountCharged}`
+                      : "-"}
+                  </td>
+
+                  <td className="p-4">
+                    {record.status === "ACTIVE" ? (
+                      <button
+                        onClick={() =>
+                          handleCheckout(record.id)
+                        }
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                      >
+                        Check Out
+                      </button>
+                    ) : (
+                      <span className="text-green-600 font-semibold">
+                        Completed
+                      </span>
+                    )}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </DashboardLayout>
   );
 }
