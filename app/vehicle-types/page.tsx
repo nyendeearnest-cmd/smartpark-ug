@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import VehicleTypeForm from "./components/VehicleTypeForm";
 import VehicleTypeTable from "./components/VehicleTypeTable";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { VehicleType } from "../types/vehicle-type";
 
 export default function VehicleTypesPage() {
@@ -48,22 +49,23 @@ export default function VehicleTypesPage() {
   }
 
   return (
-    <main className="max-w-5xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">
-        Vehicle Types
-      </h1>
+    <DashboardLayout
+      title="Vehicle Types"
+      description="Manage vehicle pricing and categories"
+    >
+      <div className="max-w-5xl mx-auto">
+        <VehicleTypeForm
+          onSuccess={handleSuccess}
+          editingVehicleType={editingVehicleType}
+          onCancel={handleCancelEdit}
+        />
 
-      <VehicleTypeForm
-        onSuccess={handleSuccess}
-        editingVehicleType={editingVehicleType}
-        onCancel={handleCancelEdit}
-      />
-
-      <VehicleTypeTable
-        vehicleTypes={vehicleTypes}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    </main>
+        <VehicleTypeTable
+          vehicleTypes={vehicleTypes}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </div>
+    </DashboardLayout>
   );
 }

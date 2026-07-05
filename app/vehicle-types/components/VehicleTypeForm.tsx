@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { VehicleType } from "../../types/vehicle-type";
 
 interface VehicleTypeFormProps {
@@ -18,12 +19,11 @@ export default function VehicleTypeForm({
   const [firstHourRate, setFirstHourRate] = useState("");
   const [additionalHourRate, setAdditionalHourRate] = useState("");
 
-  // Fill the form when Edit is clicked
   useEffect(() => {
     if (editingVehicleType) {
       setName(editingVehicleType.name);
-      setFirstHourRate(editingVehicleType.firstHourRate);
-      setAdditionalHourRate(editingVehicleType.additionalHourRate);
+      setFirstHourRate(String(editingVehicleType.firstHourRate));
+      setAdditionalHourRate(String(editingVehicleType.additionalHourRate));
     } else {
       clearForm();
     }
@@ -42,14 +42,11 @@ export default function VehicleTypeForm({
       let response: Response;
 
       if (editingVehicleType) {
-        // UPDATE
         response = await fetch(
           `/api/vehicle-types/${editingVehicleType.id}`,
           {
             method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               name,
               firstHourRate: Number(firstHourRate),
@@ -58,12 +55,9 @@ export default function VehicleTypeForm({
           }
         );
       } else {
-        // CREATE
         response = await fetch("/api/vehicle-types", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name,
             firstHourRate: Number(firstHourRate),
@@ -72,22 +66,29 @@ export default function VehicleTypeForm({
         });
       }
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        alert(error.message || "Operation failed.");
+        toast.error(data.message || "Operation failed");
         return;
       }
+
+      toast.success(
+        editingVehicleType
+          ? "Vehicle type updated"
+          : "Vehicle type created"
+      );
 
       clearForm();
       onSuccess();
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      toast.error("Something went wrong");
     }
   }
 
   return (
-    <div className="border rounded-lg p-6 mb-6 shadow">
+    <div className="border rounded-lg p-6 mb-6 shadow bg-white">
       <h2 className="text-xl font-semibold mb-4">
         {editingVehicleType
           ? "Update Vehicle Type"
@@ -96,40 +97,31 @@ export default function VehicleTypeForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
-          type="text"
+          className="w-full border p-2 rounded"
           placeholder="Vehicle Type Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded p-2"
-          required
         />
 
         <input
+          className="w-full border p-2 rounded"
           type="number"
           placeholder="First Hour Rate"
           value={firstHourRate}
           onChange={(e) => setFirstHourRate(e.target.value)}
-          className="w-full border rounded p-2"
-          required
         />
 
         <input
+          className="w-full border p-2 rounded"
           type="number"
           placeholder="Additional Hour Rate"
           value={additionalHourRate}
           onChange={(e) => setAdditionalHourRate(e.target.value)}
-          className="w-full border rounded p-2"
-          required
         />
 
         <div className="flex gap-3">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            {editingVehicleType
-              ? "Update Vehicle Type"
-              : "Save Vehicle Type"}
+          <button className="bg-blue-600 text-white px-4 py-2 rounded">
+            {editingVehicleType ? "Update" : "Save"}
           </button>
 
           {editingVehicleType && (
@@ -139,7 +131,7 @@ export default function VehicleTypeForm({
                 clearForm();
                 onCancel();
               }}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              className="bg-gray-500 text-white px-4 py-2 rounded"
             >
               Cancel
             </button>
