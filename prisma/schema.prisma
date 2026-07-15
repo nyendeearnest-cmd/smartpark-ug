@@ -101,3 +101,24 @@ checkedInBy      User? @relation(fields: [checkedInById], references: [id])
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 }
+model SystemSetting {
+  id            String   @id @default(cuid())
+
+  companyName   String
+  phone         String?
+  email         String?
+  address       String?
+  logo          String?
+
+  pricePerHour  Float    @default(1000)
+  gracePeriod   Int      @default(15)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  user      String
+  createdAt DateTime @default(now())
+}

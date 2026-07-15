@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logAction } from "@/lib/audit";
 
 export async function GET() {
   try {
@@ -111,9 +112,16 @@ export async function POST(req: Request) {
       },
     });
 
+    // Audit log
+    await logAction(
+      "Administrator",
+      `Checked in vehicle ${vehicle.numberPlate}`
+    );
+
     return NextResponse.json(record, {
       status: 201,
     });
+
   } catch (error) {
     console.error("CHECK-IN ERROR:", error);
 

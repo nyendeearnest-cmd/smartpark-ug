@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+
 import { toast } from "sonner";
 
 type Vehicle = {
@@ -36,7 +37,7 @@ export default function ParkingRecordsPage() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [records, setRecords] = useState<ParkingRecord[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   const [form, setForm] = useState({
     vehicleId: "",
     parkingSlotId: "",
@@ -110,31 +111,37 @@ export default function ParkingRecordsPage() {
     }
   }
 
-  async function handleCheckout(id: string) {
-    if (!confirm("Check out this vehicle?")) return;
+ async function handleCheckout(id: string) {
+  if (!confirm("Check out this vehicle?")) return;
 
-    try {
-      const res = await fetch(
-        `/api/parking-records/${id}/checkout`,
-        {
-          method: "PUT",
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message);
-        return;
+  try {
+    const res = await fetch(
+      `/api/parking-records/${id}/checkout`,
+      {
+        method: "PUT",
       }
+    );
 
-      toast.success("Vehicle checked out.");
+    const data = await res.json();
 
-      fetchData();
-    } catch {
-      toast.error("Checkout failed.");
+    if (!res.ok) {
+      toast.error(data.message);
+      return;
     }
+
+    toast.success("Vehicle checked out.");
+
+    fetchData();
+
+    window.open(
+      `/receipt/${data.id}`,
+      "_blank"
+    );
+
+  } catch {
+    toast.error("Checkout failed.");
   }
+}
 
   return (
     <DashboardLayout
@@ -279,6 +286,7 @@ export default function ParkingRecordsPage() {
           </tbody>
         </table>
       </div>
+      
     </DashboardLayout>
   );
 }

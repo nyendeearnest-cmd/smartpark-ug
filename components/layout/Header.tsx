@@ -1,6 +1,8 @@
 "use client";
 
-import { Bell, Search, UserCircle2 } from "lucide-react";
+import { Bell, Search, UserCircle2, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface HeaderProps {
   title: string;
@@ -11,6 +13,24 @@ export default function Header({
   title,
   description,
 }: HeaderProps) {
+  const router = useRouter();
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+      });
+
+      toast.success("Logged out successfully.");
+
+      router.push("/login");
+      router.refresh();
+
+    } catch {
+      toast.error("Logout failed.");
+    }
+  }
+
   return (
     <header className="h-20 bg-white border-b flex items-center justify-between px-8 shadow-sm">
       <div>
@@ -26,6 +46,7 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-6">
+
         <div className="hidden md:flex items-center border rounded-lg px-3 py-2 w-72">
           <Search className="w-4 h-4 text-gray-500" />
 
@@ -57,6 +78,15 @@ export default function Header({
             </p>
           </div>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
+
       </div>
     </header>
   );
