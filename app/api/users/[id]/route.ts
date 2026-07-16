@@ -44,7 +44,7 @@ export async function PUT(
     const updateData: {
       fullName: string;
       email: string;
-      role: string;
+      role: "ADMIN" | "ATTENDANT";
       password?: string;
     } = {
       fullName,
