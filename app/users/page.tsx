@@ -49,7 +49,7 @@ async function checkAccess() {
     const res = await fetch("/api/me");
 
     if (!res.ok) {
-      window.location.href = "/users";
+      window.location.href = "/login";
       return;
     }
 
@@ -65,7 +65,7 @@ async function checkAccess() {
     fetchUsers();
 
   } catch {
-    window.location.href = "/users";
+    window.location.href = "/login";
   }
 }
 
