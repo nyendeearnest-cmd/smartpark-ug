@@ -97,7 +97,7 @@ export default async function ReceiptPage({
           <div className="flex justify-between text-2xl font-bold">
             <span>Total Paid</span>
             <span>
-              UGX {record.amountCharged}
+              UGX {Number(record.amountCharged ?? 0).toLocaleString()}
             </span>
           </div>
 
