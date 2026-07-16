@@ -9,11 +9,15 @@ async function main() {
 
   if (!settings) {
     await prisma.systemSetting.create({
-      data: {
-        parkingName: "SmartPark UG",
-        gracePeriod: 15,
-      },
-    });
+  data: {
+    companyName: "SmartPark UG",
+    phone: "",
+    email: "",
+    address: "",
+    pricePerHour: 1000,
+    gracePeriod: 15,
+  },
+});
 
     console.log("✅ System settings created");
   }
