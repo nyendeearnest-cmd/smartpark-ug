@@ -40,34 +40,11 @@ export default function UsersPage() {
     }
   }
 
-  useEffect(() => {
-  checkAccess();
+ useEffect(() => {
+  fetchUsers();
 }, []);
 
-async function checkAccess() {
-  try {
-    const res = await fetch("/api/me");
 
-    if (!res.ok) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const user = await res.json();
-
-    if (user.role !== "ADMIN") {
-      toast.error("Access denied.");
-
-      window.location.href = "/dashboard";
-      return;
-    }
-
-    fetchUsers();
-
-  } catch {
-    window.location.href = "/login";
-  }
-}
 
   function resetForm() {
     setEditingId(null);
